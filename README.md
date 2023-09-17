@@ -1,0 +1,2 @@
+# VCTGlobalContract
+VCTGlobalContractのスクレイピングを行うプログラム
