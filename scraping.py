@@ -4,7 +4,7 @@ import mysql.connector
 from mysql.connector import Error
 from bs4 import BeautifulSoup
 from enum import Enum
-import pprint
+import json
 import os
 from dotenv import load_dotenv
 import copy
@@ -221,18 +221,18 @@ def show_data_list(data_list):
         print(data.values())
 
 
-def is_same_data_list(
+def diff_list_from_data_lists(
     data_list_new: list[SpreadsheetData], data_list_old: list[SpreadsheetData]
 ):
     if data_list_new == [] and data_list_old == []:
         print("No data in either list")
         return False
-    is_same = True
     # それぞれのリストをfirst_nameでソート
     data_list_new.sort(key=lambda x: x.first_name)
     data_list_old.sort(key=lambda x: x.first_name)
     data_list_new_diff = copy.deepcopy(data_list_new)
     data_list_old_diff = copy.deepcopy(data_list_old)
+    diff_list = []
     for new_data in data_list_new:
         for old_data in data_list_old:
             # もし同じ名前のデータがあったら
@@ -242,15 +242,32 @@ def is_same_data_list(
             ):
                 # それぞれのデータを比較
                 if new_data != old_data:
-                    is_same = False
-                    print("{}→{}".format(old_data.values(), new_data.values()))
+                    diff_list.append(
+                        "{}→{}".format(old_data.values(), new_data.values())
+                    )
                 data_list_new_diff.remove(new_data)
                 data_list_old_diff.remove(old_data)
     for new_data in data_list_new_diff:
-        print("[]=>{}".format(new_data.values()))
+        diff_list.append("[]=>{}".format(new_data.values()))
     for old_data in data_list_old_diff:
-        print("{}=>[]".format(old_data.values()))
-    return is_same
+        diff_list.append("{}=>[]".format(old_data.values()))
+    return diff_list
+
+
+def post_request(webhook_url, show_data: list[str]):
+    headers = {"Content-Type": "application/json"}
+    print(show_data)
+    # print(post_data)
+    post_data = {"content": "\n".join(show_data)}
+    try:
+        response = requests.post(
+            webhook_url, headers=headers, data=json.dumps(post_data)
+        )
+        response.raise_for_status()
+        print("Success post request")
+    except Error as err:
+        print("Failed post request: '{}'".format(err))
+        exit(1)
 
 
 def main():
@@ -259,9 +276,10 @@ def main():
     HOST_NAME = os.getenv("HOST_NAME")
     USER_NAME = os.getenv("USER_NAME")
     PASSWORD = os.getenv("PASSWORD")
+    WEBHOOK_URL = os.getenv("WEBHOOK_URL")
     # 定数を設定
     DB_NAME = "VCTContractsDB"
-    TABLE_NAME = "VCTContractsTable"
+    TABLE_NAME = "VCTContractsTable2"
 
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
@@ -276,15 +294,17 @@ def main():
 
     # テーブルのデータを表示
     data_list_from_db = read_data_from_db(connection, TABLE_NAME)
-
-    is_same_data_list(data_list_from_spreadsheet, data_list_from_db)
-    # show_data_list(data_list_from_db)
+    # DBとスプレッドシートのデータを比較し、diffのリストを取得
+    diff_list = diff_list_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
+    # webhookに投げる
+    post_request(WEBHOOK_URL, diff_list)
     # テーブルにデータを書き込み
     # write_data_to_db(connection, TABLE_NAME, data_list_from_spreadsheet)
     # show_data_list(data_list_from_spreadsheet)
 
     # MySQLサーバーとの接続を切断
     connection.close()
+
 
 
 if __name__ == "__main__":
