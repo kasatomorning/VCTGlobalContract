@@ -53,7 +53,6 @@ class SpreadsheetData:
         self.first_name = first_name
         self.family_name = family_name
         self.end_date = int(end_date) if end_date != "" else 0
-        # resident_statusは、boolか"Resident"かそれ以外の文字列のいずれか
         self.resident = resident
         self.roster_status = roster_status
         self.team_tag = team_tag
@@ -181,7 +180,7 @@ def execute_query(
         exit(1)
 
 
-def write_data_to_db(connection, table_name, data_list):
+def insert_data_to_db(connection, table_name, data_list):
     cursor = connection.cursor()
     query = """ INSERT INTO `{}`(
         `league`, `team_name`, `handle_name`,`role`,`first_name`,`family_name`,
@@ -191,6 +190,7 @@ def write_data_to_db(connection, table_name, data_list):
         table_name
     )
     try:
+        # insert用に最適化されたexecutemanyメソッドを使用
         cursor.executemany(query, [data.values() for data in data_list])
         connection.commit()
         print("Success writing table")
@@ -199,10 +199,10 @@ def write_data_to_db(connection, table_name, data_list):
         exit(1)
 
 
-def read_data_from_db(connection, TABLE_NAME):
-    # TODO: テーブルのデータを読み込む
+# DBのテーブルのデータを読み込む
+def read_data_from_db(connection, table_name):
     cursor = connection.cursor()
-    query = "SELECT * FROM {}".format(TABLE_NAME)
+    query = "SELECT * FROM {}".format(table_name)
     try:
         cursor.execute(query)
         data_list_from_db = [SpreadsheetData(*row) for row in cursor.fetchall()]
@@ -213,6 +213,35 @@ def read_data_from_db(connection, TABLE_NAME):
         exit(1)
 
 
+# すでに存在するレコードを更新する
+def update_data_to_db(connection, table_name, data_list):
+    for data in data_list:
+        execute_query(
+            connection,
+            """UPDATE {} SET `league` = %s, `team_name` = %s, `handle_name` = %s,
+                `role` = %s, `first_name` = %s, `family_name` = %s, `end_date` = %s,
+                `resident` = %s, `roster_status` = %s, `team_tag` = %s,
+                `team_contact_info` = %s""".format(
+                table_name, *data_list
+            ),
+            success_message="Success updating table",
+            error_message="Failed updating table",
+        )
+
+
+# レコードの削除を行う
+def delete_data_from_db(connection, table_name, data_list):
+    for data in data_list:
+        execute_query(
+            connection,
+            "DELETE FROM {} WHERE first_name = '{}' AND family_name= '{}'".format(
+                table_name, data.first_name, data.family_name
+            ),
+            success_message="Success deleting record",
+            error_message="Failed deleting record",
+        )
+
+
 def show_data_list(data_list):
     if data_list == []:
         print("No data in this list")
@@ -221,7 +250,8 @@ def show_data_list(data_list):
         print(data.values())
 
 
-def diff_list_from_data_lists(
+# リストを2つ受け取り、差分を更新/追加/削除済みの3つのリストに分けて返す
+def diff_lists_from_data_lists(
     data_list_new: list[SpreadsheetData], data_list_old: list[SpreadsheetData]
 ):
     if data_list_new == [] and data_list_old == []:
@@ -230,9 +260,9 @@ def diff_list_from_data_lists(
     # それぞれのリストをfirst_nameでソート
     data_list_new.sort(key=lambda x: x.first_name)
     data_list_old.sort(key=lambda x: x.first_name)
-    data_list_new_diff = copy.deepcopy(data_list_new)
-    data_list_old_diff = copy.deepcopy(data_list_old)
-    diff_list = []
+    data_list_added = copy.deepcopy(data_list_new)
+    data_list_removed = copy.deepcopy(data_list_old)
+    data_list_update = []
     for new_data in data_list_new:
         for old_data in data_list_old:
             # もし同じ名前のデータがあったら
@@ -242,22 +272,18 @@ def diff_list_from_data_lists(
             ):
                 # それぞれのデータを比較
                 if new_data != old_data:
-                    diff_list.append(
-                        "{}→{}".format(old_data.values(), new_data.values())
-                    )
-                data_list_new_diff.remove(new_data)
-                data_list_old_diff.remove(old_data)
-    for new_data in data_list_new_diff:
-        diff_list.append("[]=>{}".format(new_data.values()))
-    for old_data in data_list_old_diff:
-        diff_list.append("{}=>[]".format(old_data.values()))
-    return diff_list
+                    data_list_update.append(new_data)
+                data_list_added.remove(new_data)
+                data_list_removed.remove(old_data)
+    return (data_list_update, data_list_added, data_list_removed)
 
 
-def post_request(webhook_url, show_data: list[str]):
+def post_str_list_request(webhook_url, show_data: list[str]):
     headers = {"Content-Type": "application/json"}
-    print(show_data)
-    # print(post_data)
+    # リストが空のときはリクエストを送らない
+    if show_data == []:
+        print("No data in this list")
+        return
     post_data = {"content": "\n".join(show_data)}
     try:
         response = requests.post(
@@ -268,6 +294,33 @@ def post_request(webhook_url, show_data: list[str]):
     except Error as err:
         print("Failed post request: '{}'".format(err))
         exit(1)
+
+
+def post_diff_list(webhook_url, data_list_update, data_list_added, data_list_removed):
+    message_list: list[str] = []
+    for data in data_list_update:
+        message_list.append("Update: {}".format(data.values()))
+    for data in data_list_added:
+        message_list.append(
+            "New Roaster!\n{}({} {},{}) joined {}".format(
+                data.handle_name,
+                data.first_name,
+                data.family_name,
+                data.role,
+                data.team_name,
+            )
+        )
+    for data in data_list_removed:
+        message_list.append(
+            "{}({} {},{}) was removed from {}".format(
+                data.handle_name,
+                data.first_name,
+                data.family_name,
+                data.role,
+                data.team_name,
+            )
+        )
+    post_str_list_request(webhook_url, message_list)
 
 
 def main():
@@ -294,17 +347,18 @@ def main():
 
     # テーブルのデータを表示
     data_list_from_db = read_data_from_db(connection, TABLE_NAME)
-    # DBとスプレッドシートのデータを比較し、diffのリストを取得
-    diff_list = diff_list_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
-    # webhookに投げる
-    post_request(WEBHOOK_URL, diff_list)
-    # テーブルにデータを書き込み
-    # write_data_to_db(connection, TABLE_NAME, data_list_from_spreadsheet)
-    # show_data_list(data_list_from_spreadsheet)
-
+    # DBとスプレッドシートのデータを比較し、差分のリストを取得
+    (data_list_update, data_list_added, data_list_removed) = diff_lists_from_data_lists(
+        data_list_from_spreadsheet, data_list_from_db
+    )
+    # DBの更新、追加、削除
+    update_data_to_db(connection, TABLE_NAME, data_list_update)
+    insert_data_to_db(connection, TABLE_NAME, data_list_added)
+    delete_data_from_db(connection, TABLE_NAME, data_list_removed)
+    # WEBHOOKを利用してdiffを送信
+    post_diff_list(WEBHOOK_URL, data_list_update, data_list_added, data_list_removed)
     # MySQLサーバーとの接続を切断
     connection.close()
-
 
 
 if __name__ == "__main__":
