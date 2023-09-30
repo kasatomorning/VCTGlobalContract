@@ -220,7 +220,8 @@ def update_data_to_db(connection, table_name, data_list: list[SpreadsheetData]):
             connection,
             """UPDATE {} SET league = '{}', team_name = '{}', handle_name = '{}',
                 role = '{}', end_date = {}, resident = '{}', roster_status = '{}',
-                team_tag = '{}', team_contact_info = '{}'""".format(
+                team_tag = '{}', team_contact_info = '{}' where first_name='{}'
+                AND family_name='{}'""".format(
                 table_name,
                 data.league,
                 data.team_name,
@@ -231,6 +232,8 @@ def update_data_to_db(connection, table_name, data_list: list[SpreadsheetData]):
                 data.roster_status,
                 data.team_tag,
                 data.team_contact_info,
+                data.first_name,
+                data.family_name,
             ),
             success_message="Success updating table",
             error_message="Failed updating table",
