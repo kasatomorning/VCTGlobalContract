@@ -214,15 +214,23 @@ def read_data_from_db(connection, table_name):
 
 
 # すでに存在するレコードを更新する
-def update_data_to_db(connection, table_name, data_list):
+def update_data_to_db(connection, table_name, data_list: list[SpreadsheetData]):
     for data in data_list:
         execute_query(
             connection,
-            """UPDATE {} SET `league` = %s, `team_name` = %s, `handle_name` = %s,
-                `role` = %s, `first_name` = %s, `family_name` = %s, `end_date` = %s,
-                `resident` = %s, `roster_status` = %s, `team_tag` = %s,
-                `team_contact_info` = %s""".format(
-                table_name, *data_list
+            """UPDATE {} SET league = '{}', team_name = '{}', handle_name = '{}',
+                role = '{}', end_date = {}, resident = '{}', roster_status = '{}',
+                team_tag = '{}', team_contact_info = '{}'""".format(
+                table_name,
+                data.league,
+                data.team_name,
+                data.handle_name,
+                data.role,
+                data.end_date,
+                data.resident,
+                data.roster_status,
+                data.team_tag,
+                data.team_contact_info,
             ),
             success_message="Success updating table",
             error_message="Failed updating table",
@@ -332,7 +340,7 @@ def main():
     WEBHOOK_URL = os.getenv("WEBHOOK_URL")
     # 定数を設定
     DB_NAME = "VCTContractsDB"
-    TABLE_NAME = "VCTContractsTable2"
+    TABLE_NAME = "VCTContractsTable"
 
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
