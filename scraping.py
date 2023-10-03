@@ -273,7 +273,8 @@ def diff_lists_from_data_lists(
     data_list_old.sort(key=lambda x: x.first_name)
     data_list_added = copy.deepcopy(data_list_new)
     data_list_removed = copy.deepcopy(data_list_old)
-    data_list_update = []
+    data_list_update_old = []
+    data_list_update_new = []
     for new_data in data_list_new:
         for old_data in data_list_old:
             # もし同じ名前のデータがあったら
@@ -283,10 +284,16 @@ def diff_lists_from_data_lists(
             ):
                 # それぞれのデータを比較
                 if new_data != old_data:
-                    data_list_update.append(new_data)
+                    data_list_update_old.append(old_data)
+                    data_list_update_new.append(new_data)
                 data_list_added.remove(new_data)
                 data_list_removed.remove(old_data)
-    return (data_list_update, data_list_added, data_list_removed)
+    return (
+        data_list_update_old,
+        data_list_update_new,
+        data_list_added,
+        data_list_removed,
+    )
 
 
 def post_str_list_request(webhook_url, show_data: list[str]):
@@ -307,13 +314,20 @@ def post_str_list_request(webhook_url, show_data: list[str]):
         exit(1)
 
 
-def post_diff_list(webhook_url, data_list_update, data_list_added, data_list_removed):
+def post_diff_list(
+    webhook_url,
+    data_list_update_old,
+    data_list_update_new,
+    data_list_added,
+    data_list_removed,
+):
     message_list: list[str] = []
-    for data in data_list_update:
+    for data in data_list_update_new:
+        # TODO: data_list_update_oldと比較して表示するようにする
         message_list.append("Update: {}".format(data.values()))
     for data in data_list_added:
         message_list.append(
-            "New Roaster!\n{}({} {},{}) joined {}".format(
+            "New Roster!\n{}({} {},{}) joined {}".format(
                 data.handle_name,
                 data.first_name,
                 data.family_name,
@@ -359,15 +373,24 @@ def main():
     # テーブルのデータを表示
     data_list_from_db = read_data_from_db(connection, TABLE_NAME)
     # DBとスプレッドシートのデータを比較し、差分のリストを取得
-    (data_list_update, data_list_added, data_list_removed) = diff_lists_from_data_lists(
-        data_list_from_spreadsheet, data_list_from_db
-    )
+    (
+        data_list_update_old,
+        data_list_update_new,
+        data_list_added,
+        data_list_removed,
+    ) = diff_lists_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
     # DBの更新、追加、削除
-    update_data_to_db(connection, TABLE_NAME, data_list_update)
+    update_data_to_db(connection, TABLE_NAME, data_list_update_new)
     insert_data_to_db(connection, TABLE_NAME, data_list_added)
     delete_data_from_db(connection, TABLE_NAME, data_list_removed)
     # WEBHOOKを利用してdiffを送信
-    post_diff_list(WEBHOOK_URL, data_list_update, data_list_added, data_list_removed)
+    post_diff_list(
+        WEBHOOK_URL,
+        data_list_update_old,
+        data_list_update_new,
+        data_list_added,
+        data_list_removed,
+    )
     # MySQLサーバーとの接続を切断
     connection.close()
 
