@@ -92,6 +92,19 @@ class SpreadsheetData:
         ]
 
 
+class DiscordRequestData:
+    username: str = "VCTContracts告知"
+    embed = {
+        {
+            "color": 15146762,
+            "image": {
+                "url": "https://prosettings.net/cdn-cgi/image/dpr=1%2Cf=auto%2Cfit=contain%2Cheight=100%2Cq=99%2Csharpen=1%2Cwidth=100/wp-content/uploads/sugarz3ro.png"
+            },
+            "title": "",
+        }
+    }
+
+
 def get_spreadsheet_data_list(url):
     response = requests.get(url)
     soup = BeautifulSoup(response.text, "html.parser")
@@ -327,7 +340,7 @@ def post_diff_list(
         message_list.append("Update: {}".format(data.values()))
     for data in data_list_added:
         message_list.append(
-            "New Roster!\n{}({} {},{}) joined {}".format(
+            "{}({} {},{}) joined {}".format(
                 data.handle_name,
                 data.first_name,
                 data.family_name,
