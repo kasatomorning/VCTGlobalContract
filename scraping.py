@@ -94,14 +94,12 @@ class SpreadsheetData:
 
 class DiscordRequestData:
     username: str = "VCTContracts告知"
-    embed = {
-        {
-            "color": 15146762,
-            "image": {
-                "url": "https://prosettings.net/cdn-cgi/image/dpr=1%2Cf=auto%2Cfit=contain%2Cheight=100%2Cq=99%2Csharpen=1%2Cwidth=100/wp-content/uploads/sugarz3ro.png"
-            },
-            "title": "",
-        }
+    embed: dict = {
+        "color": 15146762,
+        "image": {
+            "url": "https://prosettings.net/cdn-cgi/image/dpr=1%2Cf=auto%2Cfit=contain%2Cheight=100%2Cq=99%2Csharpen=1%2Cwidth=100/wp-content/uploads/sugarz3ro.png"
+        },
+        "title": "",
     }
 
 
@@ -301,6 +299,10 @@ def diff_lists_from_data_lists(
                     data_list_update_new.append(new_data)
                 data_list_added.remove(new_data)
                 data_list_removed.remove(old_data)
+    show_data_list(data_list_update_old)
+    show_data_list(data_list_update_new)
+    show_data_list(data_list_added)
+    show_data_list(data_list_removed)
     return (
         data_list_update_old,
         data_list_update_new,
@@ -340,7 +342,7 @@ def post_diff_list(
         message_list.append("Update: {}".format(data.values()))
     for data in data_list_added:
         message_list.append(
-            "{}({} {},{}) joined {}".format(
+            "{}({} {}, {}) joined {}".format(
                 data.handle_name,
                 data.first_name,
                 data.family_name,
@@ -350,7 +352,7 @@ def post_diff_list(
         )
     for data in data_list_removed:
         message_list.append(
-            "{}({} {},{}) was removed from {}".format(
+            "{}({} {}, {}) was removed from {}".format(
                 data.handle_name,
                 data.first_name,
                 data.family_name,
