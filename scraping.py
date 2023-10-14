@@ -7,6 +7,7 @@ from enum import Enum
 import json
 import os
 from dotenv import load_dotenv
+import time
 import copy
 
 
@@ -19,19 +20,14 @@ class League(Enum):
     AMERICAS = "AMERICAS"
 
 
-class SpreadsheetData:
-    league: League
-    team_name: str
-    handle_name: str
-    role: str
-    first_name: str
-    family_name: str
-    end_date: int
-    resident: str
-    roster_status: str
-    team_tag: str
-    team_contact_info: str
+# update:green removed:red added:blue
+class Color(Enum):
+    UPDATE = 655104
+    REMOVED = 16711680
+    ADDED = 7935
 
+
+class SpreadsheetData:
     def __init__(
         self,
         league: League,
@@ -92,15 +88,17 @@ class SpreadsheetData:
         ]
 
 
-class DiscordRequestData:
-    username: str = "VCTContracts告知"
-    embed: dict = {
-        "color": 15146762,
-        "image": {
-            "url": "https://prosettings.net/cdn-cgi/image/dpr=1%2Cf=auto%2Cfit=contain%2Cheight=100%2Cq=99%2Csharpen=1%2Cwidth=100/wp-content/uploads/sugarz3ro.png"
-        },
-        "title": "",
-    }
+# Discordのリクエスト, jsonにして送信する
+class DiscordRequestMainContent:
+    def __init__(self, color: Color, image_url, title) -> None:
+        self.username = "VCTContracts告知"
+        self.embeds = [
+            {
+                "color": color.value,
+                "image": {"url": image_url},
+                "title": title,
+            }
+        ]
 
 
 def get_spreadsheet_data_list(url):
@@ -299,6 +297,7 @@ def diff_lists_from_data_lists(
                     data_list_update_new.append(new_data)
                 data_list_added.remove(new_data)
                 data_list_removed.remove(old_data)
+    # systemdのログに出力
     show_data_list(data_list_update_old)
     show_data_list(data_list_update_new)
     show_data_list(data_list_added)
@@ -311,22 +310,26 @@ def diff_lists_from_data_lists(
     )
 
 
-def post_str_list_request(webhook_url, show_data: list[str]):
+def post_request(webhook_url, show_data: list[DiscordRequestMainContent]):
     headers = {"Content-Type": "application/json"}
     # リストが空のときはリクエストを送らない
     if show_data == []:
         print("No data in this list")
         return
-    post_data = {"content": "\n".join(show_data)}
-    try:
-        response = requests.post(
-            webhook_url, headers=headers, data=json.dumps(post_data)
-        )
-        response.raise_for_status()
-        print("Success post request")
-    except Error as err:
-        print("Failed post request: '{}'".format(err))
-        exit(1)
+    for data in show_data:
+        main_content = json.dumps(data.__dict__)
+        print(main_content)
+        try:
+            response = requests.post(
+                url=webhook_url, headers=headers, data=main_content, timeout=10
+            )
+            response.raise_for_status()
+            print("Success post request")
+            # 大量の更新があった場合でも429が返ってこないようにする
+            time.sleep(3)
+        except Error as err:
+            print("Failed post request: '{}'".format(err))
+            exit(1)
 
 
 def post_diff_list(
@@ -336,31 +339,99 @@ def post_diff_list(
     data_list_added,
     data_list_removed,
 ):
-    message_list: list[str] = []
-    for data in data_list_update_new:
-        # TODO: data_list_update_oldと比較して表示するようにする
-        message_list.append("Update: {}".format(data.values()))
+    message_list: list[DiscordRequestMainContent] = []
+
+    # updateされたデータをmessage_listに追加
+    for index in range(len(data_list_update_new)):
+        if data_list_update_new[index] == data_list_update_old[index]:
+            break
+        data_new = data_list_update_new[index]
+        data_old = data_list_update_old[index]
+        title_str = ""
+        if data_new.end_date != data_old.end_date:
+            title_str = (
+                "The end date of {}({} {}, {} in {}) was changed from {} to {}".format(
+                    data_new.handle_name,
+                    data_new.first_name,
+                    data_new.family_name,
+                    data_new.role,
+                    data_new.team_name,
+                    data_old.end_date,
+                    data_new.end_date,
+                )
+            )
+        elif data_new.team_name != data_old.team_name:
+            title_str = "{}({} {}, {}, ex-{}) joined {}".format(
+                data_new.handle_name,
+                data_new.first_name,
+                data_new.family_name,
+                data_new.role,
+                data_old.team_name,
+                data_new.team_name,
+            )
+        elif data_new.roster_status != data_old.roster_status:
+            title_str = "{}({} {}, {}) is {} now".format(
+                data_new.handle_name,
+                data_new.first_name,
+                data_new.family_name,
+                data_new.role,
+                data_new.roster_status,
+            )
+        if title_str != "":
+            image_url = getPictureFromLiquipedia(data_new.handle_name)
+            message_list.append(
+                DiscordRequestMainContent(Color.UPDATE, image_url, title_str)
+            )
+
+    # 追加されたデータをmessage_listに追加
     for data in data_list_added:
         message_list.append(
-            "{}({} {}, {}) joined {}".format(
-                data.handle_name,
-                data.first_name,
-                data.family_name,
-                data.role,
-                data.team_name,
+            DiscordRequestMainContent(
+                color=Color.ADDED,
+                image_url=getPictureFromLiquipedia(data.handle_name),
+                title="{}({} {}, {}) joined {}".format(
+                    data.handle_name,
+                    data.first_name,
+                    data.family_name,
+                    data.role,
+                    data.team_name,
+                ),
             )
         )
+
+    # 削除されたデータをmessage_listに追加
     for data in data_list_removed:
         message_list.append(
-            "{}({} {}, {}) was removed from {}".format(
-                data.handle_name,
-                data.first_name,
-                data.family_name,
-                data.role,
-                data.team_name,
+            DiscordRequestMainContent(
+                color=Color.REMOVED,
+                image_url=getPictureFromLiquipedia(data.handle_name),
+                title="{}({} {}, {}) was removed from {}".format(
+                    data.handle_name,
+                    data.first_name,
+                    data.family_name,
+                    data.role,
+                    data.team_name,
+                ),
             )
         )
-    post_str_list_request(webhook_url, message_list)
+    post_request(webhook_url, message_list)
+
+
+def getPictureFromLiquipedia(player_name):
+    try:
+        request_url = "https://liquipedia.net/valorant/{}".format(player_name)
+        response = requests.get(request_url)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, features="html.parser")
+        image_url = soup.find("meta", attrs={"property": "og:image"})["content"]
+        # もしデフォルトの写真の場合は空文字列を返す
+        if "facebook-image.png" in image_url:
+            return ""
+        return image_url
+    except Exception as e:
+        # liquipediaにアクセスできない場合・ユーザーが存在しない場合などは空文字列を返す
+        print(e)
+        return ""
 
 
 def main():
@@ -370,6 +441,7 @@ def main():
     USER_NAME = os.getenv("USER_NAME")
     PASSWORD = os.getenv("PASSWORD")
     WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+
     # 定数を設定
     DB_NAME = "VCTContractsDB"
     TABLE_NAME = "VCTContractsTable"
@@ -398,6 +470,7 @@ def main():
     update_data_to_db(connection, TABLE_NAME, data_list_update_new)
     insert_data_to_db(connection, TABLE_NAME, data_list_added)
     delete_data_from_db(connection, TABLE_NAME, data_list_removed)
+
     # WEBHOOKを利用してdiffを送信
     post_diff_list(
         WEBHOOK_URL,
