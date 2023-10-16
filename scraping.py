@@ -370,11 +370,12 @@ def post_diff_list(
                 data_new.team_name,
             )
         elif data_new.roster_status != data_old.roster_status:
-            title_str = "{}({} {}, {}) is {} now".format(
+            title_str = "{}({} {}, {} in {}) is {} now".format(
                 data_new.handle_name,
                 data_new.first_name,
                 data_new.family_name,
                 data_new.role,
+                data_new.team_name,
                 data_new.roster_status,
             )
         if title_str != "":
