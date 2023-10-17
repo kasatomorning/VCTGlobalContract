@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 import time
 import copy
+import unicodedata
 
 
 target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
@@ -46,8 +47,8 @@ class SpreadsheetData:
         self.team_name = team_name
         self.handle_name = handle_name
         self.role = role
-        self.first_name = first_name
-        self.family_name = family_name
+        self.first_name = normalize_unicode(first_name)
+        self.family_name = normalize_unicode(family_name)
         self.end_date = int(end_date) if end_date != "" else 0
         self.resident = resident
         self.roster_status = roster_status
@@ -274,16 +275,34 @@ def show_data_list(data_list):
 def diff_lists_from_data_lists(
     data_list_new: list[SpreadsheetData], data_list_old: list[SpreadsheetData]
 ):
-    if data_list_new == [] and data_list_old == []:
+    if data_list_new == [] or data_list_old == []:
         print("No data in either list")
-        return False
+        return ([], [], [], [])
     # それぞれのリストをfirst_nameでソート
     data_list_new.sort(key=lambda x: x.first_name)
     data_list_old.sort(key=lambda x: x.first_name)
-    data_list_added = copy.deepcopy(data_list_new)
-    data_list_removed = copy.deepcopy(data_list_old)
+    # 既存のDBからは主キー(first_name, family_name)が重複することはない
+    # しかしSpreadsheetから取得したdata_list_newでは重複することがあるので、事前に取り除く
+    # 将来的にはDBを正規化することが必要だが、とりあえずend_dateが長いほうを残すことにする
+    # 処理としてはupdateになるので、L378以降のチーム名の変更が表示される
     data_list_update_old = []
     data_list_update_new = []
+    data_list_added = []
+    data_list_removed = []
+    for newd1 in data_list_new:
+        for newd2 in data_list_new:
+            # 同じ名前のデータが複数存在する場合
+            if (
+                newd1.first_name == newd2.first_name
+                and newd1.family_name == newd2.family_name
+                and newd1 != newd2
+            ):
+                if newd1.end_date >= newd2.end_date:
+                    data_list_new.remove(newd2)
+                else:
+                    data_list_new.remove(newd1)
+    data_list_added.extend(copy.deepcopy(data_list_new))
+    data_list_removed.extend(copy.deepcopy(data_list_old))
     for new_data in data_list_new:
         for old_data in data_list_old:
             # もし同じ名前のデータがあったら
@@ -297,10 +316,14 @@ def diff_lists_from_data_lists(
                     data_list_update_new.append(new_data)
                 data_list_added.remove(new_data)
                 data_list_removed.remove(old_data)
-    # systemdのログに出力
+    # ログに出力
+    print("list_update_old")
     show_data_list(data_list_update_old)
+    print("list_update_new")
     show_data_list(data_list_update_new)
+    print("list_added")
     show_data_list(data_list_added)
+    print("list_removed")
     show_data_list(data_list_removed)
     return (
         data_list_update_old,
@@ -348,7 +371,16 @@ def post_diff_list(
         data_new = data_list_update_new[index]
         data_old = data_list_update_old[index]
         title_str = ""
-        if data_new.end_date != data_old.end_date:
+        if data_new.team_name != data_old.team_name:
+            title_str = "{}({} {}, {}, ex-{}) joined {}".format(
+                data_new.handle_name,
+                data_new.first_name,
+                data_new.family_name,
+                data_new.role,
+                data_old.team_name,
+                data_new.team_name,
+            )
+        elif data_new.end_date != data_old.end_date:
             title_str = (
                 "The end date of {}({} {}, {} in {}) was changed from {} to {}".format(
                     data_new.handle_name,
@@ -359,15 +391,6 @@ def post_diff_list(
                     data_old.end_date,
                     data_new.end_date,
                 )
-            )
-        elif data_new.team_name != data_old.team_name:
-            title_str = "{}({} {}, {}, ex-{}) joined {}".format(
-                data_new.handle_name,
-                data_new.first_name,
-                data_new.family_name,
-                data_new.role,
-                data_old.team_name,
-                data_new.team_name,
             )
         elif data_new.roster_status != data_old.roster_status:
             title_str = "{}({} {}, {} in {}) is {} now".format(
@@ -435,6 +458,14 @@ def getPictureFromLiquipedia(player_name):
         return ""
 
 
+def normalize_unicode(words: str) -> str:
+    unicode_words = ""
+    for character in unicodedata.normalize("NFD", words):
+        if unicodedata.category(character) != "Mn":
+            unicode_words += character
+    return unicode_words
+
+
 def main():
     # 環境変数を読み込む
     load_dotenv()
@@ -469,8 +500,8 @@ def main():
     ) = diff_lists_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
     # DBの更新、追加、削除
     update_data_to_db(connection, TABLE_NAME, data_list_update_new)
-    insert_data_to_db(connection, TABLE_NAME, data_list_added)
     delete_data_from_db(connection, TABLE_NAME, data_list_removed)
+    insert_data_to_db(connection, TABLE_NAME, data_list_added)
 
     # WEBHOOKを利用してdiffを送信
     post_diff_list(
