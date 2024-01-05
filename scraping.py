@@ -19,6 +19,7 @@ class League(Enum):
     PACIFIC = "PACIFIC"
     EMEA = "EMEA"
     AMERICAS = "AMERICAS"
+    CN = "CN"
 
 
 # update:green removed:red added:blue
