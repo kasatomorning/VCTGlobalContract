@@ -485,10 +485,6 @@ def main():
     PASSWORD = os.getenv("PASSWORD")
     WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
-    # 定数を設定
-    DB_NAME = "VCTContractsDB"
-    TABLE_NAME = "VCTContractsTable"
-
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
     # MySQLサーバーに接続
@@ -526,5 +522,68 @@ def main():
     connection.close()
 
 
+def main_simulate():
+    """
+    本当にDBを更新できるかどうかを試すための関数
+    VCTContractsTable2にVCTContractsTableのデータをコピーし更新する
+    webhookは利用しない
+    """
+    # 環境変数を読み込む
+    load_dotenv()
+    HOST_NAME = os.getenv("HOST_NAME")
+    USER_NAME = os.getenv("USER_NAME")
+    PASSWORD = os.getenv("PASSWORD")
+
+    # 使うテーブル名を設定
+    simulate_TABLE_NAME = "VCTContractsTable2"
+
+    # スプレッドシートのpubhtmlのデータを取得
+    data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
+    # MySQLサーバーに接続
+    connection = connect_to_mysql_server(HOST_NAME, USER_NAME, PASSWORD)
+    # DBを作成|存在確認
+    create_or_check_database(connection, DB_NAME)
+    # DBを選択
+    execute_query(connection, "USE {}".format(DB_NAME))
+    # テーブルを作成|存在確認
+    create_or_check_table(connection, simulate_TABLE_NAME)
+    # 既存のデータを削除
+    execute_query(
+        connection,
+        "DELETE FROM {}".format(simulate_TABLE_NAME),
+        success_message="Success reset table data",
+        error_message="Failed reset table data",
+    )
+    # 実際のテーブルのデータをコピー
+    execute_query(
+        connection,
+        "INSERT INTO {} SELECT * FROM {};".format(simulate_TABLE_NAME, TABLE_NAME),
+        success_message="Success copying table",
+        error_message="Failed copying table",
+    )
+    # テーブルのデータを表示
+    data_list_from_db = read_data_from_db(connection, simulate_TABLE_NAME)
+    # DBとスプレッドシートのデータを比較し、差分のリストを取得
+    (
+        data_list_update_old,
+        data_list_update_new,
+        data_list_added,
+        data_list_removed,
+    ) = diff_lists_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
+
+    # DBの更新、追加、削除
+    update_data_to_db(connection, simulate_TABLE_NAME, data_list_update_new)
+    delete_data_from_db(connection, simulate_TABLE_NAME, data_list_removed)
+    insert_data_to_db(connection, simulate_TABLE_NAME, data_list_added)
+
+    # MySQLサーバーとの接続を切断
+    connection.close()
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
+        print("---START simulation mode---")
+        main_simulate()
+        print("---END simulation mode---")
+    else:
+        main()
