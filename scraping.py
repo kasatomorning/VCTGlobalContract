@@ -505,6 +505,7 @@ def main():
         data_list_added,
         data_list_removed,
     ) = diff_lists_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
+
     # DBの更新、追加、削除
     update_data_to_db(connection, TABLE_NAME, data_list_update_new)
     delete_data_from_db(connection, TABLE_NAME, data_list_removed)
