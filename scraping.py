@@ -10,9 +10,14 @@ from dotenv import load_dotenv
 import time
 import copy
 import unicodedata
+import sys
 
 
 target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
+
+COLUMN_NUM = 11
+DB_NAME = "VCTContractsDB"
+TABLE_NAME = "VCTContractsTable"
 
 
 class League(Enum):
@@ -104,25 +109,30 @@ class DiscordRequestMainContent:
 
 
 def get_spreadsheet_data_list(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, "html.parser")
-    tr_element = soup.find_all("tr")
-    data_list = []
-    for i in tr_element:
-        texts = i.findAll("td")
-        text_list = []
-        for j in texts:
-            text_list.append(j.text)
-        # 空行・リーグ名が不正な行・選手名が空の行は無視
-        if (
-            len(text_list) == 0
-            or text_list[0] not in [league.value for league in League]
-            or text_list[4] == ""
-            or text_list[5] == ""
-        ):
-            continue
-        data = SpreadsheetData(*text_list)
-        data_list.append(data)
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, "html.parser")
+        tr_element = soup.find_all("tr")
+        data_list = []
+        for i in tr_element:
+            texts = i.findAll("td")
+            text_list = []
+            for j in texts:
+                text_list.append(j.text)
+            # 空行・リーグ名が不正な行・選手名が空の行は無視
+            if (
+                len(text_list) == 0
+                or text_list[0] not in [league.value for league in League]
+                or text_list[4] == ""
+                or text_list[5] == ""
+            ):
+                continue
+            # はじめの11列だけ取得
+            data = SpreadsheetData(*text_list[:COLUMN_NUM])
+            data_list.append(data)
+    except Error as err:
+        print("Error: '{}'".format(err))
+        exit(1)
     return data_list
 
 
