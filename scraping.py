@@ -413,7 +413,7 @@ def post_diff_list(
                 data_new.roster_status,
             )
         if title_str != "":
-            image_url = getPictureFromLiquipedia(data_new.handle_name)
+            image_url = get_picture_from_liquipedia(data_new.handle_name)
             message_list.append(
                 DiscordRequestMainContent(Color.UPDATE, image_url, title_str)
             )
@@ -423,7 +423,7 @@ def post_diff_list(
         message_list.append(
             DiscordRequestMainContent(
                 color=Color.ADDED,
-                image_url=getPictureFromLiquipedia(data.handle_name),
+                image_url=get_picture_from_liquipedia(data.handle_name),
                 title="{}({} {}, {}) joined {}".format(
                     data.handle_name,
                     data.first_name,
@@ -439,7 +439,7 @@ def post_diff_list(
         message_list.append(
             DiscordRequestMainContent(
                 color=Color.REMOVED,
-                image_url=getPictureFromLiquipedia(data.handle_name),
+                image_url=get_picture_from_liquipedia(data.handle_name),
                 title="{}({} {}, {}) was removed from {}".format(
                     data.handle_name,
                     data.first_name,
@@ -452,7 +452,7 @@ def post_diff_list(
     post_request(webhook_url, message_list)
 
 
-def getPictureFromLiquipedia(player_name):
+def get_picture_from_liquipedia(player_name):
     try:
         request_url = "https://liquipedia.net/valorant/{}".format(player_name)
         response = requests.get(request_url)
