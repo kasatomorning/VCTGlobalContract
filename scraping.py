@@ -300,6 +300,7 @@ def diff_lists_from_data_lists(
     data_list_update_new = []
     data_list_added = []
     data_list_removed = []
+    # 重複を除去
     for newd1 in data_list_new:
         for newd2 in data_list_new:
             # 同じ名前のデータが複数存在する場合
@@ -536,7 +537,7 @@ def main_simulate():
     PASSWORD = os.getenv("PASSWORD")
 
     # 使うテーブル名を設定
-    simulate_TABLE_NAME = "VCTContractsTable2"
+    simulate_TABLE_NAME = "VCTContractsTableSimulate"
 
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
