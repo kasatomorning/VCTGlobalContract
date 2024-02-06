@@ -11,6 +11,7 @@ import time
 import copy
 import unicodedata
 import sys
+import re
 
 
 target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
@@ -18,6 +19,8 @@ target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZ
 COLUMN_NUM = 11
 DB_NAME = "VCTContractsDB"
 TABLE_NAME = "VCTContractsTable"
+
+ad_pattern = r"20\d{2}"
 
 
 class League(Enum):
@@ -127,6 +130,12 @@ def get_spreadsheet_data_list(url):
                 or text_list[5] == ""
             ):
                 continue
+            # End Dateが20xx年の形式でない場合は0にする
+            ad_match = re.search(ad_pattern, text_list[7])
+            if ad_match:
+                text_list[7] = ad_match.group()
+            else:
+                text_list[7] = "0"
             # はじめの11列だけ取得
             data = SpreadsheetData(*text_list[:COLUMN_NUM])
             data_list.append(data)
