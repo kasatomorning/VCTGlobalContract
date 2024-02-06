@@ -133,9 +133,9 @@ def get_spreadsheet_data_list(url):
             # End Dateが20xx年の形式でない場合は0にする
             ad_match = re.search(ad_pattern, text_list[7])
             if ad_match:
-                text_list[7] = ad_match.group()
+                text_list[6] = ad_match.group()
             else:
-                text_list[7] = "0"
+                text_list[6] = ""
             # はじめの11列だけ取得
             data = SpreadsheetData(*text_list[:COLUMN_NUM])
             data_list.append(data)
