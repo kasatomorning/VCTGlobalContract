@@ -131,7 +131,7 @@ def get_spreadsheet_data_list(url):
             ):
                 continue
             # End Dateが20xx年の形式でない場合は0にする
-            ad_match = re.search(ad_pattern, text_list[7])
+            ad_match = re.search(ad_pattern, text_list[6])
             if ad_match:
                 text_list[6] = ad_match.group()
             else:
