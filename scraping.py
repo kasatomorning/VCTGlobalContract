@@ -118,9 +118,9 @@ def get_spreadsheet_data_list(url):
         tr_element = soup.find_all("tr")
         data_list = []
         for i in tr_element:
-            texts = i.findAll("td")
+            td_elements = i.findAll("td")
             text_list = []
-            for j in texts:
+            for j in td_elements:
                 text_list.append(j.text)
             # 空行・リーグ名が不正な行・選手名が空の行は無視
             if (
