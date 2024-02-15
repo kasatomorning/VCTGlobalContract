@@ -422,6 +422,15 @@ def post_diff_list(
                 data_new.team_name,
                 data_new.roster_status,
             )
+        elif data_new.role != data_old.role:
+            title_str = "{}({} {} in {}) changed role from {} to {}".format(
+                data_new.handle_name,
+                data_new.first_name,
+                data_new.family_name,
+                data_new.team_name,
+                data_old.role,
+                data_new.role,
+            )
         if title_str != "":
             image_url = get_picture_from_liquipedia(data_new.handle_name)
             message_list.append(
