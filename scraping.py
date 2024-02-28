@@ -351,10 +351,10 @@ def diff_lists_from_data_lists(
     show_data_list(data_list_update_old)
     print("list_update_new")
     show_data_list(data_list_update_new)
-    print("list_added")
-    show_data_list(data_list_added)
     print("list_removed")
     show_data_list(data_list_removed)
+    print("list_added")
+    show_data_list(data_list_added)
     return (
         data_list_update_old,
         data_list_update_new,
@@ -446,13 +446,13 @@ def post_diff_list(
                 DiscordRequestMainContent(Color.UPDATE, image_url, title_str)
             )
 
-    # 追加されたデータをmessage_listに追加
-    for data in data_list_added:
+    # 削除されたデータをmessage_listに追加
+    for data in data_list_removed:
         message_list.append(
             DiscordRequestMainContent(
-                color=Color.ADDED,
+                color=Color.REMOVED,
                 image_url=get_picture_from_liquipedia(data.handle_name),
-                title="{}({} {}, {}) joined {}".format(
+                title="{}({} {}, {}) was removed from {}".format(
                     data.handle_name,
                     data.first_name,
                     data.family_name,
@@ -462,13 +462,13 @@ def post_diff_list(
             )
         )
 
-    # 削除されたデータをmessage_listに追加
-    for data in data_list_removed:
+    # 追加されたデータをmessage_listに追加
+    for data in data_list_added:
         message_list.append(
             DiscordRequestMainContent(
-                color=Color.REMOVED,
+                color=Color.ADDED,
                 image_url=get_picture_from_liquipedia(data.handle_name),
-                title="{}({} {}, {}) was removed from {}".format(
+                title="{}({} {}, {}) joined {}".format(
                     data.handle_name,
                     data.first_name,
                     data.family_name,
