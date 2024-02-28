@@ -12,6 +12,15 @@ import copy
 import unicodedata
 import sys
 import re
+import requests.packages.urllib3.util.connection as urllib3_cn
+import socket
+
+
+def allowed_gai_family4():
+    return socket.AF_INET
+
+
+urllib3_cn.allowed_gai_family = allowed_gai_family4
 
 
 target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
@@ -113,7 +122,7 @@ class DiscordRequestMainContent:
 
 def get_spreadsheet_data_list(url):
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=10)
         soup = BeautifulSoup(response.text, "html.parser")
         tr_element = soup.find_all("tr")
         data_list = []
@@ -474,6 +483,7 @@ def post_diff_list(
 def get_picture_from_liquipedia(player_name):
     try:
         request_url = "https://liquipedia.net/valorant/{}".format(player_name)
+        print(request_url)
         response = requests.get(request_url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, features="html.parser")
@@ -553,6 +563,7 @@ def main_simulate():
     HOST_NAME = os.getenv("HOST_NAME")
     USER_NAME = os.getenv("USER_NAME")
     PASSWORD = os.getenv("PASSWORD")
+    WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
     # 使うテーブル名を設定
     simulate_TABLE_NAME = "VCTContractsTableSimulate"
@@ -595,7 +606,14 @@ def main_simulate():
     update_data_to_db(connection, simulate_TABLE_NAME, data_list_update_new)
     delete_data_from_db(connection, simulate_TABLE_NAME, data_list_removed)
     insert_data_to_db(connection, simulate_TABLE_NAME, data_list_added)
-
+    # WEBHOOKを利用してdiffを送信
+    post_diff_list(
+        WEBHOOK_URL,
+        data_list_update_old,
+        data_list_update_new,
+        data_list_added,
+        data_list_removed,
+    )
     # MySQLサーバーとの接続を切断
     connection.close()
 
