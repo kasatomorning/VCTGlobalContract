@@ -566,20 +566,22 @@ def main_simulate():
     """
     本当にDBを更新できるかどうかを試すための関数
     VCTContractsTable2にVCTContractsTableのデータをコピーし更新する
-    webhookは利用しない
+    WEBHOOK_URL_SIMULATEに差分を送信する
     """
     # 環境変数を読み込む
     load_dotenv()
     HOST_NAME = os.getenv("HOST_NAME")
     USER_NAME = os.getenv("USER_NAME")
     PASSWORD = os.getenv("PASSWORD")
-    WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+    WEBHOOK_URL_SIMULATE = os.getenv("WEBHOOK_URL_SIMULATE")
 
     # 使うテーブル名を設定
     simulate_TABLE_NAME = "VCTContractsTableSimulate"
 
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
+    # show_data_list(data_list_from_spreadsheet)
+
     # MySQLサーバーに接続
     connection = connect_to_mysql_server(HOST_NAME, USER_NAME, PASSWORD)
     # DBを作成|存在確認
@@ -618,7 +620,7 @@ def main_simulate():
     insert_data_to_db(connection, simulate_TABLE_NAME, data_list_added)
     # WEBHOOKを利用してdiffを送信
     post_diff_list(
-        WEBHOOK_URL,
+        WEBHOOK_URL_SIMULATE,
         data_list_update_old,
         data_list_update_new,
         data_list_added,
