@@ -14,6 +14,7 @@ import sys
 import re
 import requests.packages.urllib3.util.connection as urllib3_cn
 import socket
+from logging import getLogger, StreamHandler, DEBUG
 
 
 def allowed_gai_family4():
@@ -24,7 +25,11 @@ urllib3_cn.allowed_gai_family = allowed_gai_family4
 
 
 target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
-
+logger = getLogger(__name__)
+logger.setLevel(DEBUG)
+console_handler = StreamHandler()
+console_handler.setLevel(DEBUG)
+logger.addHandler(console_handler)
 COLUMN_NUM = 11
 DB_NAME = "VCTContractsDB"
 TABLE_NAME = "VCTContractsTable"
@@ -134,7 +139,7 @@ def get_spreadsheet_data_list(url):
             if is_validate_text_list(text_list):
                 data_list.append(format_text_list(text_list))
     except Error as err:
-        print("Error: '{}'".format(err))
+        logger.error("Error: '{}'".format(err))
         exit(1)
     return data_list
 
@@ -170,9 +175,9 @@ def connect_to_mysql_server(host_name, user_name, user_password):
         connection = mysql.connector.connect(
             host=host_name, user=user_name, passwd=user_password
         )
-        print("MySQL Database connection successful")
+        logger.debug("MySQL Database connection successful")
     except Error as err:
-        print(f"Error: '{err}'")
+        logger.error(f"Error: '{err}'")
     return connection
 
 
@@ -223,9 +228,9 @@ def execute_query(
         cursor.execute(query)
         connection.commit()
         if success_message is not None:
-            print(success_message)
+            logger.debug(success_message)
     except Error as err:
-        print("{}: '{}'".format(error_message, err))
+        logger.error("{}: '{}'".format(error_message, err))
         exit(1)
 
 
@@ -242,9 +247,10 @@ def insert_data_to_db(connection, table_name, data_list):
         # insert用に最適化されたexecutemanyメソッドを使用
         cursor.executemany(query, [data.values() for data in data_list])
         connection.commit()
-        print("Success writing table")
+        if data_list != []:
+            logger.debug("Success writing table")
     except Error as err:
-        print("Error: '{}'".format(err))
+        logger.error("Error: '{}'".format(err))
         exit(1)
 
 
@@ -255,10 +261,10 @@ def read_data_from_db(connection, table_name):
     try:
         cursor.execute(query)
         data_list_from_db = [SpreadsheetData(*row) for row in cursor.fetchall()]
-        print("Success reading table")
+        logger.debug("Success reading table")
         return data_list_from_db
     except Error as err:
-        print("Failed reading table: '{}'".format(err))
+        logger.error("Failed reading table: '{}'".format(err))
         exit(1)
 
 
@@ -304,10 +310,10 @@ def delete_data_from_db(connection, table_name, data_list):
 
 def show_data_list(data_list):
     if data_list == []:
-        print("No data in this list")
+        logger.debug("No data in this list")
         return
     for data in data_list:
-        print(data.values())
+        logger.debug(data.values())
 
 
 # リストを2つ受け取り、差分を更新/追加/削除済みの3つのリストに分けて返す
@@ -315,7 +321,7 @@ def diff_lists_from_data_lists(
     data_list_new: list[SpreadsheetData], data_list_old: list[SpreadsheetData]
 ):
     if data_list_new == [] or data_list_old == []:
-        print("No data in either list")
+        logger.warning("No data in old|new list")
         return ([], [], [], [])
     # それぞれのリストをfirst_nameでソート
     data_list_new.sort(key=lambda x: x.first_name)
@@ -357,13 +363,13 @@ def diff_lists_from_data_lists(
                 data_list_added.remove(new_data)
                 data_list_removed.remove(old_data)
     # ログに出力
-    print("list_update_old")
+    logger.debug("list_update_old")
     show_data_list(data_list_update_old)
-    print("list_update_new")
+    logger.debug("list_update_new")
     show_data_list(data_list_update_new)
-    print("list_removed")
+    logger.debug("list_removed")
     show_data_list(data_list_removed)
-    print("list_added")
+    logger.debug("list_added")
     show_data_list(data_list_added)
     return (
         data_list_update_old,
@@ -377,21 +383,21 @@ def post_request(webhook_url, show_data: list[DiscordRequestMainContent]):
     headers = {"Content-Type": "application/json"}
     # リストが空のときはリクエストを送らない
     if show_data == []:
-        print("No data in this list")
+        logger.debug("No POST data...Finish!")
         return
     for data in show_data:
         main_content = json.dumps(data.__dict__)
-        print(main_content)
+        logger.debug(main_content)
         try:
             response = requests.post(
                 url=webhook_url, headers=headers, data=main_content, timeout=10
             )
             response.raise_for_status()
-            print("Success post request")
+            logger.debug("Success post request")
             # 大量の更新があった場合でも429が返ってこないようにする
             time.sleep(3)
         except Error as err:
-            print("Failed post request: '{}'".format(err))
+            logger.warning("Failed post request: '{}'".format(err))
             exit(1)
 
 
@@ -504,7 +510,7 @@ def get_picture_from_liquipedia(player_name):
         return image_url
     except Exception as e:
         # liquipediaにアクセスできない場合・ユーザーが存在しない場合などは空文字列を返す
-        print(e)
+        logger.debug(e)
         return ""
 
 
@@ -632,8 +638,8 @@ def main_simulate():
 
 if __name__ == "__main__":
     if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
-        print("---START simulation mode---")
+        logger.debug("---START simulation mode---")
         main_simulate()
-        print("---END simulation mode---")
+        logger.debug("---END simulation mode---")
     else:
         main()
