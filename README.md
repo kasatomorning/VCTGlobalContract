@@ -36,4 +36,4 @@ Success post request
 `--simulate`をつけると、DBへの書き込みを行わずに、`WEBHOOK_URL_SIMULATE`で指定したURLへの投稿のみを行います。
 
 # Sample
-![alt text](image.png)
+![alt text](misc/image.png)
