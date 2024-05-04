@@ -17,13 +17,12 @@ import socket
 from logging import getLogger, StreamHandler, DEBUG
 
 
+# ソケットの通信をIPv4のみに制限
 def allowed_gai_family4():
     return socket.AF_INET
 
 
 urllib3_cn.allowed_gai_family = allowed_gai_family4
-
-
 target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
 logger = getLogger(__name__)
 logger.setLevel(DEBUG)
@@ -499,7 +498,6 @@ def post_diff_list(
 def get_picture_from_liquipedia(player_name):
     try:
         request_url = "https://liquipedia.net/valorant/{}".format(player_name)
-        print(request_url)
         response = requests.get(request_url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, features="html.parser")
@@ -571,7 +569,7 @@ def main():
 def main_simulate():
     """
     本当にDBを更新できるかどうかを試すための関数
-    VCTContractsTable2にVCTContractsTableのデータをコピーし更新する
+    VCTContractsTableSimulateにVCTContractsTableのデータをコピーし更新
     WEBHOOK_URL_SIMULATEに差分を送信する
     """
     # 環境変数を読み込む
@@ -586,7 +584,6 @@ def main_simulate():
 
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
-    # show_data_list(data_list_from_spreadsheet)
 
     # MySQLサーバーに接続
     connection = connect_to_mysql_server(HOST_NAME, USER_NAME, PASSWORD)
