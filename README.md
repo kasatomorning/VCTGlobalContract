@@ -1,5 +1,7 @@
 # VCTGlobalContract
-VCTGlobalContractのスクレイピングを行うプログラム
+VCTGlobalContractのスクレイピングを行うプログラムです。
+
+MySQLにデータを保存し、追加、更新、削除があった場合にDiscordに通知します。
 
 # Usage and Options
 1. `.env`を作成
@@ -32,3 +34,6 @@ Success post request
 ```
 
 `--simulate`をつけると、DBへの書き込みを行わずに、`WEBHOOK_URL_SIMULATE`で指定したURLへの投稿のみを行います。
+
+# Sample
+![alt text](image.png)
