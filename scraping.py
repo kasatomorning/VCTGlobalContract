@@ -395,6 +395,7 @@ def post_request(webhook_url, show_data: list[DiscordRequestMainContent]):
             exit(1)
 
 
+# team_name, end_date, roster_status, roleの変更のみ告知する
 def post_diff_list(
     webhook_url,
     data_list_update_old,
@@ -524,7 +525,7 @@ def main():
     WEBHOOK_URL = os.getenv("WEBHOOK_URL")
 
     # スプレッドシートのpubhtmlのデータを取得
-    data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
+    data_list_from_spreadsheet = get_spreadsheet_data_list(TARGET_URL)
     # MySQLサーバーに接続
     connection = connect_to_mysql_server(HOST_NAME, USER_NAME, PASSWORD)
     # DBを作成|存在確認
@@ -578,7 +579,7 @@ def main_simulate():
     simulate_TABLE_NAME = "VCTContractsTableSimulate"
 
     # スプレッドシートのpubhtmlのデータを取得
-    data_list_from_spreadsheet = get_spreadsheet_data_list(target_url)
+    data_list_from_spreadsheet = get_spreadsheet_data_list(TARGET_URL)
 
     # MySQLサーバーに接続
     connection = connect_to_mysql_server(HOST_NAME, USER_NAME, PASSWORD)
