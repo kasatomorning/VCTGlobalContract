@@ -33,8 +33,6 @@ COLUMN_NUM = 11
 DB_NAME = "VCTContractsDB"
 TABLE_NAME = "VCTContractsTable"
 
-ad_pattern = r"20\d{2}"
-
 
 class League(Enum):
     PACIFIC = "PACIFIC"
@@ -157,6 +155,7 @@ def is_validate_text_list(text_list: list[str]):
 
 
 def format_text_list(text_list: list[str]) -> SpreadsheetData:
+    ad_pattern = r"20\d{2}"
     # End Dateが20xx年の形式でない場合は0にする
     ad_match = re.search(ad_pattern, text_list[6])
     if ad_match:
