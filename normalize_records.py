@@ -5,7 +5,6 @@ from scraping import (
     create_or_check_table,
     read_data_from_db,
     connect_to_mysql_server,
-    delete_data_from_db,
     insert_data_to_db,
     execute_query,
 )
