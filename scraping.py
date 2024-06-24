@@ -23,12 +23,8 @@ def allowed_gai_family4():
 
 
 urllib3_cn.allowed_gai_family = allowed_gai_family4
-target_url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
 logger = getLogger(__name__)
-logger.setLevel(DEBUG)
-console_handler = StreamHandler()
-console_handler.setLevel(DEBUG)
-logger.addHandler(console_handler)
+TARGET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZq54nKlmj0ZtythsA1qCpegwx-iRptx2HEsG0T3cQlG1r2AIiKxBWnaurJZQ9Q/pubhtml#"
 COLUMN_NUM = 11
 DB_NAME = "VCTContractsDB"
 TABLE_NAME = "VCTContractsTable"
@@ -632,7 +628,15 @@ def main_simulate():
     connection.close()
 
 
+def setup_logger():
+    logger.setLevel(DEBUG)
+    console_handler = StreamHandler()
+    console_handler.setLevel(DEBUG)
+    logger.addHandler(console_handler)
+
+
 if __name__ == "__main__":
+    setup_logger()
     if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
         logger.debug("---START simulation mode---")
         main_simulate()
