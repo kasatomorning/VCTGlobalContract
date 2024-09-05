@@ -9,7 +9,7 @@ import time
 import sys
 import requests.packages.urllib3.util.connection as urllib3_cn
 import socket
-from log.logger import setup_logger
+from utils.utils import setup_logger
 from db.db_access import (
     connect_to_mysql_server,
     create_or_check_database,

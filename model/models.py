@@ -1,5 +1,5 @@
 from enum import Enum
-from utils import normalize_unicode
+from utils.utils import normalize_unicode
 
 
 class League(Enum):
