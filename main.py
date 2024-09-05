@@ -53,7 +53,7 @@ class DiscordRequestMainContent:
         ]
 
 
-def post_request(webhook_url, show_data: list[DiscordRequestMainContent]):
+def post_message_list(webhook_url, show_data: list[DiscordRequestMainContent]):
     headers = {"Content-Type": "application/json"}
     # リストが空のときはリクエストを送らない
     if show_data == []:
@@ -75,8 +75,8 @@ def post_request(webhook_url, show_data: list[DiscordRequestMainContent]):
             exit(1)
 
 
-# team_name, end_date, roster_status, roleの変更のみ告知する
-def post_diff_list(
+# 差分を取り、team_name, end_date, roster_status, roleの変更のみ告知する
+def compare_and_post_diff_list(
     webhook_url,
     data_list_update_old,
     data_list_update_new,
@@ -168,7 +168,7 @@ def post_diff_list(
                 ),
             )
         )
-    post_request(webhook_url, message_list)
+    post_message_list(webhook_url, message_list)
 
 
 def get_picture_from_liquipedia(player_name):
@@ -223,7 +223,7 @@ def main():
     insert_data_to_db(connection, TABLE_NAME, data_list_added)
 
     # WEBHOOKを利用してdiffを送信
-    post_diff_list(
+    compare_and_post_diff_list(
         WEBHOOK_URL,
         data_list_update_old,
         data_list_update_new,
