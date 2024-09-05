@@ -1,7 +1,7 @@
 import mysql.connector
-from model import SpreadsheetData
+from model.models import SpreadsheetData
 import copy
-from log.logger import setup_logger
+from utils.utils import setup_logger
 
 logger = setup_logger(__name__)
 
