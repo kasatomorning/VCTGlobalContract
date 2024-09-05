@@ -21,7 +21,8 @@ from db.db_access import (
     delete_data_from_db,
     insert_data_to_db,
 )
-from scraping.simulate import main_simulate
+
+# from scraping.simulate import main_simulate
 from model.models import Color
 from scraping.scraping import get_spreadsheet_data_list
 
@@ -238,7 +239,7 @@ if __name__ == "__main__":
     setup_logger()
     if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
         logger.debug("---START simulation mode---")
-        main_simulate()
+        # main_simulate()
         logger.debug("---END simulation mode---")
     else:
         main()
