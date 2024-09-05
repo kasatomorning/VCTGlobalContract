@@ -2,7 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from model.models import SpreadsheetData, League
-from log.logger import setup_logger
+from utils.utils import setup_logger
 
 logger = setup_logger(__name__)
 
