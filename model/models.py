@@ -75,3 +75,16 @@ class SpreadsheetData:
             self.team_tag,
             self.team_contact_info,
         ]
+
+
+# Discordのリクエスト,jsonにして送信する
+class DiscordRequestMainContent:
+    def __init__(self, color: Color, image_url, title) -> None:
+        self.username = "VCTContracts告知"
+        self.embeds = [
+            {
+                "color": color.value,
+                "image": {"url": image_url},
+                "title": title,
+            }
+        ]

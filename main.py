@@ -23,7 +23,7 @@ from db.db_access import (
 )
 
 # from scraping.simulate import main_simulate
-from model.models import Color
+from model.models import Color, DiscordRequestMainContent
 from scraping.scraping import get_spreadsheet_data_list
 
 logger = setup_logger(__name__)
@@ -39,19 +39,6 @@ TARGET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRmmWiBmMMD43m5VtZ
 COLUMN_NUM = 11
 DB_NAME = "VCTContractsDB"
 TABLE_NAME = "VCTContractsTable"
-
-
-# Discordのリクエスト, jsonにして送信する
-class DiscordRequestMainContent:
-    def __init__(self, color: Color, image_url, title) -> None:
-        self.username = "VCTContracts告知"
-        self.embeds = [
-            {
-                "color": color.value,
-                "image": {"url": image_url},
-                "title": title,
-            }
-        ]
 
 
 def post_message_list(webhook_url, show_data: list[DiscordRequestMainContent]):
@@ -77,7 +64,7 @@ def post_message_list(webhook_url, show_data: list[DiscordRequestMainContent]):
 
 
 # 差分を取り、team_name, end_date, roster_status, roleの変更のみ告知する
-def compare_and_post_diff_list(
+def create_message_list(
     webhook_url,
     data_list_update_old,
     data_list_update_new,
@@ -169,7 +156,7 @@ def compare_and_post_diff_list(
                 ),
             )
         )
-    post_message_list(webhook_url, message_list)
+    return message_list
 
 
 def get_picture_from_liquipedia(player_name):
@@ -224,13 +211,15 @@ def main():
     insert_data_to_db(connection, TABLE_NAME, data_list_added)
 
     # WEBHOOKを利用してdiffを送信
-    compare_and_post_diff_list(
+    message_list = create_message_list(
         WEBHOOK_URL,
         data_list_update_old,
         data_list_update_new,
         data_list_added,
         data_list_removed,
     )
+    post_message_list(WEBHOOK_URL, message_list)
+
     # MySQLサーバーとの接続を切断
     connection.close()
 
