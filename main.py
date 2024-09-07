@@ -18,7 +18,7 @@ from db.db_access import (
 )
 
 # from scraping.simulate import main_simulate
-from scraping.scraping import get_spreadsheet_data_list
+from scraping.spreadsheet import get_spreadsheet_data_list
 from message.message_creator import create_message_list
 from discord_utils.discord_message import post_message_list
 
