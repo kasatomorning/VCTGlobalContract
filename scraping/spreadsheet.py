@@ -6,8 +6,6 @@ from utils.utils import setup_logger
 
 logger = setup_logger(__name__)
 
-COLUMN_NUM = 11
-
 
 def get_spreadsheet_data_list(url: str) -> list[SpreadsheetData]:
     try:
@@ -22,6 +20,7 @@ def get_spreadsheet_data_list(url: str) -> list[SpreadsheetData]:
                 text_list.append(ele.text.rstrip())
             if is_validate_text_list(text_list):
                 data_list.append(format_text_list(text_list))
+    # TODO:エラー調べる
     except Exception as err:
         logger.error("Error: '{}'".format(err))
         exit(1)
