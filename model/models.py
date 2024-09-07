@@ -77,7 +77,7 @@ class SpreadsheetData:
         ]
 
 
-# Discordのリクエスト,jsonにして送信する
+# Discordのリクエストを作成する
 class DiscordRequestMainContent:
     def __init__(self, color: Color, image_url, title) -> None:
         self.username = "VCTContracts告知"
@@ -88,3 +88,10 @@ class DiscordRequestMainContent:
                 "title": title,
             }
         ]
+
+    def __repr__(self) -> str:
+        return "DiscordRequestMainContent(color={}, image_url={}, title={})".format(
+            self.embeds[0]["color"],
+            self.embeds[0]["image"]["url"],
+            self.embeds[0]["title"],
+        )
