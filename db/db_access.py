@@ -163,10 +163,11 @@ def diff_lists_from_data_lists(
     # それぞれのリストをfirst_nameでソート
     data_list_new.sort(key=lambda x: x.first_name)
     data_list_old.sort(key=lambda x: x.first_name)
-    # 既存のDBからは主キー(first_name, family_name)が重複することはない
+
+    # 既存のDB(data_list_new)からは主キー(first_name, family_name)が重複することはない
     # しかしSpreadsheetから取得したdata_list_newでは重複することがあるので、事前に取り除く
     # 将来的にはDBを正規化することが必要だが、とりあえずend_dateが長いほうを残すことにする
-    # 処理としてはupdateになるので、L378以降のチーム名の変更が表示される
+    # 処理としてはupdateになるので、チーム名の変更が表示される
     data_list_update_old = []
     data_list_update_new = []
     data_list_added = []
@@ -184,6 +185,7 @@ def diff_lists_from_data_lists(
                     data_list_new.remove(newd2)
                 else:
                     data_list_new.remove(newd1)
+
     data_list_added.extend(copy.deepcopy(data_list_new))
     data_list_removed.extend(copy.deepcopy(data_list_old))
     for new_data in data_list_new:
