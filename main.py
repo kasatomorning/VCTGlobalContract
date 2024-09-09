@@ -1,7 +1,8 @@
 from __future__ import annotations
 import conf.global_values as g
 import sys
-import requests.packages.urllib3.util.connection as urllib3_cn
+
+import urllib3.util.connection as urllib3_cn
 import socket
 from conf.settings import load_env
 from utils.utils import setup_logger
@@ -17,7 +18,6 @@ from db.db_access import (
     insert_data_to_db,
 )
 
-# from scraping.simulate import main_simulate
 from scraping.spreadsheet import get_spreadsheet_data_list
 from message.message_creator import create_message_list
 from discord_utils.discord_message import post_message_list
@@ -30,11 +30,7 @@ def allowed_gai_family4():
     return socket.AF_INET
 
 
-urllib3_cn.allowed_gai_family = allowed_gai_family4
-
-
 def main():
-    # TODO: エラーハンドリングをちゃんと行う
     load_env()
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(g.TARGET_URL)
@@ -64,7 +60,7 @@ def main():
 
     # WEBHOOKを利用してdiffを送信
     message_list = create_message_list(
-g.WEBHOOK_URL,
+        g.WEBHOOK_URL,
         data_list_update_old,
         data_list_update_new,
         data_list_added,
@@ -78,9 +74,14 @@ g.WEBHOOK_URL,
 
 if __name__ == "__main__":
     setup_logger()
-    if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
-        logger.debug("---START simulation mode---")
-        # main_simulate()
-        logger.debug("---END simulation mode---")
-    else:
-        main()
+    urllib3_cn.allowed_gai_family = allowed_gai_family4
+    try:
+        if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
+            logger.debug("---START simulation mode---")
+            # main_simulate()
+            logger.debug("---END simulation mode---")
+        else:
+            main()
+    except Exception as e:
+        logger.error(e)
+        sys.exit(1)

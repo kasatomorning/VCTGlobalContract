@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import re
 from model.models import SpreadsheetData, League
 from utils.utils import setup_logger
+import conf.global_values as g
 
 logger = setup_logger(__name__)
 
@@ -20,7 +21,8 @@ def get_spreadsheet_data_list(url: str) -> list[SpreadsheetData]:
                 text_list.append(ele.text.rstrip())
             if is_validate_text_list(text_list):
                 data_list.append(format_text_list(text_list))
-    # TODO:エラー調べる
+    # memo：https://3.python-requests.org/user/quickstart/#errors-and-exceptions
+    # 必要に応じて今後追加する
     except Exception as err:
         logger.error("Error: '{}'".format(err))
         exit(1)
@@ -49,5 +51,5 @@ def format_text_list(text_list: list[str]) -> SpreadsheetData:
     else:
         text_list[6] = "0"
     # はじめの11列だけ取得
-    data = SpreadsheetData(*text_list[:COLUMN_NUM])
+    data = SpreadsheetData(*text_list[: g.COLUMN_NUM])
     return data
