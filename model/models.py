@@ -53,6 +53,7 @@ class SpreadsheetData:
 
 
 # Discordのリクエストを作成する
+# docs:https://birdie0.github.io/discord-webhooks-guide/discord_webhook.html
 class DiscordRequestMainContent:
     def __init__(self, color: Color, image_url, title) -> None:
         self.username = "VCTContracts告知"

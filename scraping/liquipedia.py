@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from utils.utils import setup_logger
+import time
 
 logger = setup_logger(__name__)
 
@@ -20,3 +21,5 @@ def get_picture_from_liquipedia(player_name):
         # liquipediaにアクセスできない場合・ユーザーが存在しない場合などは空文字列を返す
         logger.debug(e)
         return ""
+    finally:
+        time.sleep(1)

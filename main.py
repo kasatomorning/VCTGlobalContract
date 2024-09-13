@@ -58,7 +58,6 @@ def main():
 
     # WEBHOOKを利用してdiffを送信
     message_list = create_message_list(
-        g.WEBHOOK_URL,
         data_list_update_old,
         data_list_update_new,
         data_list_added,
@@ -123,7 +122,6 @@ def main_simulate():
     insert_data_to_db(connection, simulate_TABLE_NAME, data_list_added)
     # WEBHOOKを利用してdiffを送信
     message_list = create_message_list(
-        g.WEBHOOK_URL_SIMULATE,
         data_list_update_old,
         data_list_update_new,
         data_list_added,

@@ -1,14 +1,13 @@
-from model.models import Color, DiscordRequestMainContent
+from model.models import Color, DiscordRequestMainContent, SpreadsheetData
 from scraping.liquipedia import get_picture_from_liquipedia
 
 
 # 差分を取り、team_name, end_date, roster_status, roleの変更のみ告知する
 def create_message_list(
-    webhook_url,
-    data_list_update_old,
-    data_list_update_new,
-    data_list_added,
-    data_list_removed,
+    data_list_update_old: list[SpreadsheetData],
+    data_list_update_new: list[SpreadsheetData],
+    data_list_added: list[SpreadsheetData],
+    data_list_removed: list[SpreadsheetData],
 ):
     message_list: list[DiscordRequestMainContent] = []
 
