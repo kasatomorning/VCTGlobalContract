@@ -64,7 +64,7 @@ class LiquipediaScraper:
         self._image_url = None
         self._description = None
 
-    def get_links(self) -> str:
+    def get_links(self) -> list[tuple[str, str]]:
         if self._links is None:
             self._links = []
             tag_name_flag = False
@@ -86,7 +86,7 @@ class LiquipediaScraper:
                     continue
         return self._links
 
-    def get_history(self) -> str:
+    def get_history(self) -> list[tuple[str, str]]:
         if self._history is None:
             self._history = []
             tag_name_flag = False
