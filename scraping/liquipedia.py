@@ -59,9 +59,29 @@ class LiquipediaScraper:
         except Exception as e:
             self._profile = None
             logger.debug(e)
-        print(self._profile)
+        self._history = None
         self._image_url = None
         self._description = None
+
+    def get_history(self) -> str:
+        if self._history is None:
+            self._history = []
+            player_information = self.soup.find("div", class_="fo-nttax-infobox")
+            history_flag = False
+            for info in player_information:
+                if history_flag:
+                    try:
+                        for history_line in info.find("tbody"):
+                            self._history.append((history_line.contents[0].text, history_line.contents[1].text))
+                    except Exception as e:
+                        logger.debug(e)
+                    break
+                try:
+                    if info.contents[0].contents[0].text == 'History':
+                        history_flag = True
+                except IndexError:
+                    continue
+        return self._history
 
     def get_image_url(self) -> str:
         if self._image_url is None:
