@@ -1,6 +1,6 @@
 from __future__ import annotations
 import conf.global_values as g
-import sys
+import sys, time
 
 import urllib3.util.connection as urllib3_cn
 import socket
@@ -62,8 +62,11 @@ def main():
         data_list_update_new,
         data_list_added,
         data_list_removed,
+        webhook_url=g.WEBHOOK_URL,
     )
-    post_message_list(g.WEBHOOK_URL, message_list)
+    for message in message_list:
+        message.post()
+        time.sleep(1)
 
     # MySQLサーバーとの接続を切断
     connection.close()
@@ -126,8 +129,12 @@ def main_simulate():
         data_list_update_new,
         data_list_added,
         data_list_removed,
+        webhook_url=g.WEBHOOK_URL
     )
-    post_message_list(g.WEBHOOK_URL, message_list)
+    for message in message_list:
+        message.post()
+        time.sleep(1)
+
     # MySQLサーバーとの接続を切断
     connection.close()
 
