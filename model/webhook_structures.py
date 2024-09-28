@@ -23,6 +23,19 @@ class Field(WebhookStructure):
     value: str
     inline: Optional[bool] = None
 
+@dataclass
+class Image(WebhookStructure):
+    url: str
+    proxy_url: Optional[str] = None
+    height: Optional[int] = None
+    width: Optional[int] = None
+
+@dataclass
+class Thumbnail(WebhookStructure):
+    url: str
+    proxy_url: Optional[str] = None
+    height: Optional[int] = None
+    width: Optional[int] = None
 
 @dataclass
 class Embed(WebhookStructure):
@@ -33,8 +46,8 @@ class Embed(WebhookStructure):
     timestamp: Optional[str] = None
     color: Optional[int] = None
     # footer
-    # image
-    # thumbnail
+    image: Optional[Image] = None
+    thumbnail: Optional[Thumbnail] = None
     # video
     # provider
     author: Optional[Author] = None

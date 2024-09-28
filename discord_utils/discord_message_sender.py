@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from model.models import SpreadsheetData
-from model.webhook_structures import DiscordWebhookStructure, Embed, Field
+from model.webhook_structures import DiscordWebhookStructure, Embed, Field, Image, Thumbnail
 from utils.utils import setup_logger
 from scraping.liquipedia import LiquipediaScraper
 
@@ -50,7 +50,8 @@ class DiscordSpreadsheetMessageSender(DiscordMessageSender):
         self.liquipedia_scraper = LiquipediaScraper(player_name=player_name)
         self.webhook_structure.embeds = [Embed(
             description=self.liquipedia_scraper.get_description(),
-            fields=[Field(name='Age', value=self.liquipedia_scraper.get_age())]
+            fields=[Field(name='Age', value=self.liquipedia_scraper.get_age(),)],
+            image=Image(url=self.liquipedia_scraper.get_image_url())
         )]
 
 
