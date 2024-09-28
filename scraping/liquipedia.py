@@ -31,6 +31,7 @@ class LiquipediaScraper:
     LIQUIPEDIA_URL_FORMAT = "https://liquipedia.net/valorant/{}"
     REX_BIRTH_DATE = re.compile(r"[a-zA-Z]+ [0-9]+, [0-9]+")
     REX_AGE = re.compile(r"age.([0-9]+)")
+    REX_LINK_TYPE = re.compile(r"lp-(.+)")
 
     def __init__(self, player_name):
         # liquipediaからページを取得
@@ -75,7 +76,12 @@ class LiquipediaScraper:
                 if tag_name_flag:
                     try:
                         for link_line in info.find_all("a"):
-                            self._links.append(link_line["href"])
+                            try:
+                                link_type = self.REX_LINK_TYPE.match(link_line.contents[0]["class"][1]).group(1)
+                                self._links.append((link_type, link_line["href"]))
+                            except Exception as e:
+                                self._links.append(("", link_line["href"]))
+                                logger.debug(e)
                     except Exception as e:
                         logger.debug(e)
                     break
