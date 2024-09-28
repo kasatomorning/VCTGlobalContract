@@ -4,7 +4,7 @@ from model.webhook_structures import DiscordWebhookStructure, Embed, Field, Imag
 from utils.utils import setup_logger
 from scraping.liquipedia import LiquipediaScraper
 
-import json, requests
+import json, requests, time
 
 logger = setup_logger(__name__)
 
@@ -37,6 +37,8 @@ class DiscordMessageSender:
         except Exception as err:
             logger.warning("Failed post request: '{}'".format(err))
             raise
+        finally:
+            time.sleep(self.SLEEP_INTERVAL)
 
 
 class DiscordSpreadsheetMessageSender(DiscordMessageSender):

@@ -1,6 +1,6 @@
 from __future__ import annotations
 import conf.global_values as g
-import sys, time
+import sys
 
 import urllib3.util.connection as urllib3_cn
 import socket
@@ -66,7 +66,6 @@ def main():
     )
     for message in message_list:
         message.post()
-        time.sleep(1)
 
     # MySQLサーバーとの接続を切断
     connection.close()
@@ -133,7 +132,6 @@ def main_simulate():
     )
     for message in message_list:
         message.post()
-        time.sleep(1)
 
     # MySQLサーバーとの接続を切断
     connection.close()
