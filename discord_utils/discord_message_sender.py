@@ -52,7 +52,15 @@ class DiscordSpreadsheetMessageSender(DiscordMessageSender):
         self.liquipedia_scraper = LiquipediaScraper(player_name=player_name)
         self.webhook_structure.embeds = [Embed(
             description=self.liquipedia_scraper.get_description(),
-            fields=[Field(name='Age', value=self.liquipedia_scraper.get_age(),)],
+            fields=[
+                Field(name='Age', value=self.liquipedia_scraper.get_age()),
+                Field(name='Links', value=", ".join(
+                    map(lambda x: "[{}]({})".format(x[0], x[1]), self.liquipedia_scraper.get_links())
+                )),
+                Field(name="History", value="\n".join(
+                    map(lambda x: "{}: {}".format(x[0], x[1]), self.liquipedia_scraper.get_history())
+                ))
+            ],
             image=Image(url=self.liquipedia_scraper.get_image_url())
         )]
 

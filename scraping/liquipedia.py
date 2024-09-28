@@ -80,7 +80,7 @@ class LiquipediaScraper:
                                 link_type = self.REX_LINK_TYPE.match(link_line.contents[0]["class"][1]).group(1)
                                 self._links.append((link_type, link_line["href"]))
                             except Exception as e:
-                                self._links.append(("", link_line["href"]))
+                                self._links.append(("link", link_line["href"]))
                                 logger.debug(e)
                     except Exception as e:
                         logger.debug(e)
