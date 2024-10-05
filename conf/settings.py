@@ -16,3 +16,4 @@ def load_env():
     g.USER_NAME = get_env_variable("USER_NAME")
     g.PASSWORD = get_env_variable("PASSWORD")
     g.WEBHOOK_URL = get_env_variable("WEBHOOK_URL")
+    g.WEBHOOK_URL_TEST = get_env_variable("WEBHOOK_URL_TEST")
