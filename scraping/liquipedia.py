@@ -44,6 +44,7 @@ class LiquipediaScraper:
             self.soup = BeautifulSoup(self.response.content, features="html.parser")
         except Exception as e:
             # liquipediaにアクセスできない場合・ユーザーが存在しない場合などは空文字列を返す
+            self.soup = None
             logger.debug(e)
         finally:
             time.sleep(1)
