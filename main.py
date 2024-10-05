@@ -28,8 +28,7 @@ def allowed_gai_family4():
     return socket.AF_INET
 
 
-def main():
-    load_env()
+def main(table_name: str = g.TABLE_NAME, webhook_url: str = g.WEBHOOK_URL):
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(g.TARGET_URL)
     # MySQLサーバーに接続
@@ -39,10 +38,10 @@ def main():
     # DBを選択
     execute_query(connection, "USE {}".format(g.DB_NAME))
     # テーブルを作成|存在確認
-    create_or_check_table(connection, g.TABLE_NAME)
+    create_or_check_table(connection, table_name)
 
     # テーブルのデータを表示
-    data_list_from_db = read_data_from_db(connection, g.TABLE_NAME)
+    data_list_from_db = read_data_from_db(connection, table_name)
     # DBとスプレッドシートのデータを比較し、差分のリストを取得
     (
         data_list_update_old,
@@ -52,9 +51,9 @@ def main():
     ) = diff_lists_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
 
     # DBの更新、追加、削除
-    update_data_to_db(connection, g.TABLE_NAME, data_list_update_new)
-    delete_data_from_db(connection, g.TABLE_NAME, data_list_removed)
-    insert_data_to_db(connection, g.TABLE_NAME, data_list_added)
+    update_data_to_db(connection, table_name, data_list_update_new)
+    delete_data_from_db(connection, table_name, data_list_removed)
+    insert_data_to_db(connection, table_name, data_list_added)
 
     # WEBHOOKを利用してdiffを送信
     message_list = create_message_list(
@@ -67,11 +66,12 @@ def main():
     for message in message_list:
         message.post()
 
+
     # MySQLサーバーとの接続を切断
     connection.close()
 
 
-def main_simulate():
+def main_verify():
     """
     本当にDBを更新できるかどうかを試すための関数
     VCTContractsTableSimulateにVCTContractsTableのデータをコピーし更新
@@ -79,9 +79,6 @@ def main_simulate():
     """
     # 環境変数を読み込む
     load_env()
-
-    # 使うテーブル名を設定
-    simulate_TABLE_NAME = "VCTContractsTableSimulate"
 
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(g.TARGET_URL)
@@ -93,23 +90,23 @@ def main_simulate():
     # DBを選択
     execute_query(connection, "USE {}".format(g.DB_NAME))
     # テーブルを作成|存在確認
-    create_or_check_table(connection, simulate_TABLE_NAME)
+    create_or_check_table(connection, g.TABLE_NAME_TEST)
     # 既存のデータを削除
     execute_query(
         connection,
-        "DELETE FROM {}".format(simulate_TABLE_NAME),
+        "DELETE FROM {}".format(g.TABLE_NAME_TEST),
         success_message="Success reset table data",
         error_message="Failed reset table data",
     )
     # 実際のテーブルのデータをコピー
     execute_query(
         connection,
-        "INSERT INTO {} SELECT * FROM {};".format(simulate_TABLE_NAME, g.TABLE_NAME),
+        "INSERT INTO {} SELECT * FROM {};".format(g.TABLE_NAME_TEST, g.TABLE_NAME),
         success_message="Success copying table",
         error_message="Failed copying table",
     )
     # テーブルのデータを表示
-    data_list_from_db = read_data_from_db(connection, simulate_TABLE_NAME)
+    data_list_from_db = read_data_from_db(connection, g.TABLE_NAME_TEST)
     # DBとスプレッドシートのデータを比較し、差分のリストを取得
     (
         data_list_update_old,
@@ -119,9 +116,9 @@ def main_simulate():
     ) = diff_lists_from_data_lists(data_list_from_spreadsheet, data_list_from_db)
 
     # DBの更新、追加、削除
-    update_data_to_db(connection, simulate_TABLE_NAME, data_list_update_new)
-    delete_data_from_db(connection, simulate_TABLE_NAME, data_list_removed)
-    insert_data_to_db(connection, simulate_TABLE_NAME, data_list_added)
+    update_data_to_db(connection, g.TABLE_NAME_TEST, data_list_update_new)
+    delete_data_from_db(connection, g.TABLE_NAME_TEST, data_list_removed)
+    insert_data_to_db(connection, g.TABLE_NAME_TEST, data_list_added)
     # WEBHOOKを利用してdiffを送信
     message_list = create_message_list(
         data_list_update_old,
@@ -139,12 +136,17 @@ def main_simulate():
 
 if __name__ == "__main__":
     logger = setup_logger(__name__)
+    load_env()
     urllib3_cn.allowed_gai_family = allowed_gai_family4
     try:
-        if len(sys.argv) >= 2 and sys.argv[1] == "--simulate":
-            logger.debug("---START simulation mode---")
-            main_simulate()
-            logger.debug("---END simulation mode---")
+        if len(sys.argv) >= 2 and sys.argv[1] == "--verify":
+            logger.debug("---START verify mode---")
+            main_verify()
+            logger.debug("---END verify mode---")
+        elif len(sys.argv) >= 2 and sys.argv[1] == "--test":
+            logger.debug("---START test mode---")
+            main(g.TABLE_NAME_TEST, g.WEBHOOK_URL_TEST)
+            logger.debug("---END test mode---")
         else:
             main()
     except Exception as e:
