@@ -61,8 +61,11 @@ def main(table_name: str = g.TABLE_NAME, webhook_url: str = g.WEBHOOK_URL):
         data_list_update_new,
         data_list_added,
         data_list_removed,
+        webhook_url=g.WEBHOOK_URL,
     )
-    post_message_list(webhook_url, message_list)
+    for message in message_list:
+        message.post()
+
 
     # MySQLサーバーとの接続を切断
     connection.close()
@@ -122,8 +125,11 @@ def main_verify():
         data_list_update_new,
         data_list_added,
         data_list_removed,
+        webhook_url=g.WEBHOOK_URL
     )
-    post_message_list(g.WEBHOOK_URL, message_list)
+    for message in message_list:
+        message.post()
+
     # MySQLサーバーとの接続を切断
     connection.close()
 
