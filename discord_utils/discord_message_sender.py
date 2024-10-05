@@ -80,6 +80,8 @@ class DiscordSpreadsheetMessageSender(DiscordMessageSender):
                     image=Image(url=self.liquipedia_scraper.get_image_url()),
                 )
             ]
+        else:
+            self.webhook_structure.embeds = [Embed()]
 
 
 class DiscordTeamUpdatedMessageSender(DiscordSpreadsheetMessageSender):
