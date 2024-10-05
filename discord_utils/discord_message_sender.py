@@ -52,19 +52,34 @@ class DiscordSpreadsheetMessageSender(DiscordMessageSender):
     ):
         super().__init__(webhook_url=webhook_url, webhook_structure=webhook_structure)
         self.liquipedia_scraper = LiquipediaScraper(player_name=player_name)
-        self.webhook_structure.embeds = [Embed(
-            description=self.liquipedia_scraper.get_description(),
-            fields=[
-                Field(name='Age', value=self.liquipedia_scraper.get_age()),
-                Field(name='Links', value=", ".join(
-                    map(lambda x: "[{}]({})".format(x[0], x[1]), self.liquipedia_scraper.get_links())
-                )),
-                Field(name="History", value="\n".join(
-                    map(lambda x: "{}: {}".format(x[0], x[1]), self.liquipedia_scraper.get_history())
-                ))
-            ],
-            image=Image(url=self.liquipedia_scraper.get_image_url())
-        )]
+        if self.liquipedia_scraper.scrape_successfully():
+            self.webhook_structure.embeds = [
+                Embed(
+                    description=self.liquipedia_scraper.get_description(),
+                    fields=[
+                        Field(name="Age", value=self.liquipedia_scraper.get_age()),
+                        Field(
+                            name="Links",
+                            value=", ".join(
+                                map(
+                                    lambda x: "[{}]({})".format(x[0], x[1]),
+                                    self.liquipedia_scraper.get_links(),
+                                )
+                            ),
+                        ),
+                        Field(
+                            name="History",
+                            value="\n".join(
+                                map(
+                                    lambda x: "{}: {}".format(x[0], x[1]),
+                                    self.liquipedia_scraper.get_history(),
+                                )
+                            ),
+                        ),
+                    ],
+                    image=Image(url=self.liquipedia_scraper.get_image_url()),
+                )
+            ]
 
 
 class DiscordTeamUpdatedMessageSender(DiscordSpreadsheetMessageSender):

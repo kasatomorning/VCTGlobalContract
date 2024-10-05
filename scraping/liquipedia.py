@@ -66,6 +66,9 @@ class LiquipediaScraper:
         self._image_url = None
         self._description = None
 
+    def scrape_successfully(self) -> bool:
+        return self.soup is not None
+
     def get_links(self) -> list[tuple[str, str]]:
         if self.soup is not None and self._links is None:
             self._links = []
@@ -93,7 +96,7 @@ class LiquipediaScraper:
                     continue
         return self._links
 
-    def get_history(self) -> list[tuple[str, str]]:
+    def get_history(self) -> Optional[list[tuple[str, str]]]:
         if self.soup is not None and self._history is None:
             self._history = []
             tag_name_flag = False
@@ -115,7 +118,7 @@ class LiquipediaScraper:
                     continue
         return self._history
 
-    def get_image_url(self) -> str:
+    def get_image_url(self) -> Optional[str]:
         if self.soup is not None and self._image_url is None:
             # パースできなかった場合はNoneが返ってくる
             url = self.soup.find("meta", attrs={"property": "og:image"})["content"]
@@ -127,7 +130,7 @@ class LiquipediaScraper:
                 self._image_url = url
         return self._image_url
 
-    def get_description(self) -> str:
+    def get_description(self) -> Optional[str]:
         if self.soup is not None and self._description is None:
             self._description = self.soup.find(
                 "meta", attrs={"property": "og:description"}
