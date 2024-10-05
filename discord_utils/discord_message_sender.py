@@ -17,10 +17,12 @@ class DiscordMessageSender:
     def __init__(
         self,
         webhook_url: str,
-        webhook_structure: DiscordWebhookStructure = DiscordWebhookStructure(),
+        webhook_structure: DiscordWebhookStructure = None,
     ):
         self.webhook_url = webhook_url
         self.webhook_structure = webhook_structure
+        if webhook_structure is None:
+            self.webhook_structure = DiscordWebhookStructure()
 
     def post(self):
         main_content = json.dumps(self.webhook_structure.dict())
@@ -46,7 +48,7 @@ class DiscordSpreadsheetMessageSender(DiscordMessageSender):
         self,
         player_name: str,
         webhook_url: str,
-        webhook_structure: DiscordWebhookStructure = DiscordWebhookStructure(),
+        webhook_structure: DiscordWebhookStructure = None,
     ):
         super().__init__(webhook_url=webhook_url, webhook_structure=webhook_structure)
         self.liquipedia_scraper = LiquipediaScraper(player_name=player_name)
