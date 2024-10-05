@@ -66,7 +66,7 @@ class LiquipediaScraper:
         self._description = None
 
     def get_links(self) -> list[tuple[str, str]]:
-        if self._links is None:
+        if self.soup is not None and self._links is None:
             self._links = []
             tag_name_flag = False
             player_information = self.soup.find("div", class_="fo-nttax-infobox")
@@ -93,7 +93,7 @@ class LiquipediaScraper:
         return self._links
 
     def get_history(self) -> list[tuple[str, str]]:
-        if self._history is None:
+        if self.soup is not None and self._history is None:
             self._history = []
             tag_name_flag = False
             player_information = self.soup.find("div", class_="fo-nttax-infobox")
@@ -115,7 +115,7 @@ class LiquipediaScraper:
         return self._history
 
     def get_image_url(self) -> str:
-        if self._image_url is None:
+        if self.soup is not None and self._image_url is None:
             # パースできなかった場合はNoneが返ってくる
             url = self.soup.find("meta", attrs={"property": "og:image"})["content"]
             if "facebook-image.png" in url:  # 画像がデフォルトの場合
@@ -127,7 +127,7 @@ class LiquipediaScraper:
         return self._image_url
 
     def get_description(self) -> str:
-        if self._description is None:
+        if self.soup is not None and self._description is None:
             self._description = self.soup.find(
                 "meta", attrs={"property": "og:description"}
             )["content"]
