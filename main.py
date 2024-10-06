@@ -20,7 +20,6 @@ from db.db_access import (
 
 from scraping.spreadsheet import get_spreadsheet_data_list
 from message.message_creator import create_message_list
-from discord_utils.discord_message import post_message_list
 
 
 # ソケットの通信をIPv4のみに制限

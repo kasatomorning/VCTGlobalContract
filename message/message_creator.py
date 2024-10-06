@@ -1,5 +1,4 @@
 from model.models import Color, DiscordRequestMainContent, SpreadsheetData
-from scraping.liquipedia import get_picture_from_liquipedia
 from discord_utils.discord_message_sender import *
 
 # 差分を取り、team_name, end_date, roster_status, roleの変更のみ告知する
