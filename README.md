@@ -9,13 +9,13 @@ MySQLにデータを保存し、追加、更新、削除があった場合にDis
 - `USER_NAME`: MySQLのユーザ名
 - `PASSWORD`: MySQLのパスワード
 - `WEBHOOK_URL`: DiscordのWebhook URL
-- `WEBHOOK_URL_SIMULATE`: シミュレーション時のDiscordのWebhook URL(任意)
+- `WEBHOOK_URL_TEST`: テスト時のDiscordのWebhook URL
 
 `.env.example`を参考にしてください。
 
-2. `python3 scraping.py`を実行
+2. `python3 main.py`を実行
 ```
-$ python3 scraping.py
+$ python3 main.py
 MySQL Database connection successful
 Create DB or already exists
 Create table or already exists
@@ -33,7 +33,7 @@ Success writing table
 Success post request
 ```
 
-`--simulate`をつけると、DBへの書き込みを行わずに、`WEBHOOK_URL_SIMULATE`で指定したURLへの投稿のみを行います。
+`--verify`をつけると、既存のテーブルを更新せずに`WEBHOOK_URL_TEST`で指定したURLへの投稿のみを行います。
 
 # Sample
 ![alt text](misc/image.png)
