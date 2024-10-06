@@ -61,11 +61,10 @@ def main(table_name: str = g.TABLE_NAME, webhook_url: str = g.WEBHOOK_URL):
         data_list_update_new,
         data_list_added,
         data_list_removed,
-        webhook_url=g.WEBHOOK_URL,
+        webhook_url=webhook_url,
     )
     for message in message_list:
         message.post()
-
 
     # MySQLサーバーとの接続を切断
     connection.close()
@@ -125,7 +124,7 @@ def main_verify():
         data_list_update_new,
         data_list_added,
         data_list_removed,
-        webhook_url=g.WEBHOOK_URL
+        webhook_url=g.WEBHOOK_URL,
     )
     for message in message_list:
         message.post()
@@ -145,6 +144,8 @@ if __name__ == "__main__":
             logger.debug("---END verify mode---")
         elif len(sys.argv) >= 2 and sys.argv[1] == "--test":
             logger.debug("---START test mode---")
+            print("Table name: ", g.TABLE_NAME_TEST)
+            print("Webhook URL: ", g.WEBHOOK_URL_TEST)
             main(g.TABLE_NAME_TEST, g.WEBHOOK_URL_TEST)
             logger.debug("---END test mode---")
         else:
