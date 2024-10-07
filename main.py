@@ -27,7 +27,7 @@ def allowed_gai_family4():
     return socket.AF_INET
 
 
-def main(table_name: str = g.TABLE_NAME, webhook_url: str = g.WEBHOOK_URL):
+def main(table_name: str, webhook_url: str):
     # スプレッドシートのpubhtmlのデータを取得
     data_list_from_spreadsheet = get_spreadsheet_data_list(g.TARGET_URL)
     # MySQLサーバーに接続
@@ -148,7 +148,7 @@ if __name__ == "__main__":
             main(g.TABLE_NAME_TEST, g.WEBHOOK_URL_TEST)
             logger.debug("---END test mode---")
         else:
-            main()
+            main(g.TABLE_NAME, g.WEBHOOK_URL)
     except Exception as e:
         logger.error(e)
         sys.exit(1)
