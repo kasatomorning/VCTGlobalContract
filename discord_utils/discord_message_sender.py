@@ -52,7 +52,7 @@ class DiscordSpreadsheetMessageSender(DiscordMessageSender):
     ):
         super().__init__(webhook_url=webhook_url, webhook_structure=webhook_structure)
         self.liquipedia_scraper = LiquipediaScraper(player_name=player_name)
-        if self.liquipedia_scraper.scrape_successfully():
+        if self.liquipedia_scraper.scrape_successfully:
             self.webhook_structure.embeds = [
                 Embed(
                     description=self.liquipedia_scraper.get_description(),

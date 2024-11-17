@@ -47,11 +47,12 @@ class LiquipediaScraper:
         self._image_url = None
         self._description = None
 
+    @property
     def scrape_successfully(self) -> bool:
         return self.soup is not None
 
     def get_links(self) -> list[tuple[str, str]]:
-        if self.scrape_successfully() and self._links is None:
+        if self.scrape_successfully and self._links is None:
             self._links = []
             tag_name_flag = False
             player_information = self.soup.find("div", class_="fo-nttax-infobox")
@@ -78,7 +79,7 @@ class LiquipediaScraper:
         return self._links
 
     def get_history(self) -> Optional[list[tuple[str, str]]]:
-        if self.scrape_successfully() and self._history is None:
+        if self.scrape_successfully and self._history is None:
             self._history = []
             tag_name_flag = False
             player_information = self.soup.find("div", class_="fo-nttax-infobox")
@@ -100,7 +101,7 @@ class LiquipediaScraper:
         return self._history
 
     def get_image_url(self) -> Optional[str]:
-        if self.scrape_successfully() and self._image_url is None:
+        if self.scrape_successfully and self._image_url is None:
             # パースできなかった場合はNoneが返ってくる
             url = self.soup.find("meta", attrs={"property": "og:image"})["content"]
             if "facebook-image.png" in url:  # 画像がデフォルトの場合
@@ -112,7 +113,7 @@ class LiquipediaScraper:
         return self._image_url
 
     def get_description(self) -> Optional[str]:
-        if self.scrape_successfully() and self._description is None:
+        if self.scrape_successfully and self._description is None:
             self._description = self.soup.find(
                 "meta", attrs={"property": "og:description"}
             )["content"]
@@ -121,7 +122,7 @@ class LiquipediaScraper:
         return self._description
 
     def get_birth_date(self) -> Optional[datetime.date]:
-        if self.scrape_successfully() and "Born:" in self._profile:
+        if self.scrape_successfully and "Born:" in self._profile:
             try:
                 return datetime.datetime.strptime(
                     self.REX_BIRTH_DATE.search(self._profile["Born:"]).group(),
@@ -132,7 +133,7 @@ class LiquipediaScraper:
         return None
 
     def get_age(self) -> Optional[int]:
-        if self.scrape_successfully() and "Born:" in self._profile:
+        if self.scrape_successfully and "Born:" in self._profile:
             try:
                 print(self._profile["Born:"])
                 return int(self.REX_AGE.search(self._profile["Born:"]).group(1))
@@ -141,19 +142,19 @@ class LiquipediaScraper:
         return None
 
     def get_status(self) -> Optional[str]:
-        if self.scrape_successfully() and "Status:" in self._profile:
+        if self.scrape_successfully and "Status:" in self._profile:
             return self._profile["Status:"]
         else:
             return None
 
     def get_name(self) -> Optional[str]:
-        if self.scrape_successfully() and "Name:" in self._profile:
+        if self.scrape_successfully and "Name:" in self._profile:
             return self._profile["Name:"]
         else:
             return None
 
     def get_team(self) -> Optional[str]:
-        if self.scrape_successfully() and "Team:" in self._profile:
+        if self.scrape_successfully and "Team:" in self._profile:
             return self._profile["Team:"]
         else:
             return None
